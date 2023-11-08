@@ -28,8 +28,13 @@ let explode (str : string) : char list =
 
 
 (* conversions *)
-let base_of_char (c : char) : base =
-  failwith "À compléter"
+let base_of_char (c : char) : base = match c with
+| 'A' ->  A
+| 'C' ->  C
+| 'G' ->  G
+| 'T' ->  T
+| _ ->  WC
+
 
 
 let dna_of_string (s : string) : base list =
