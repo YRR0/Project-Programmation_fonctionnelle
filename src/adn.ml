@@ -56,8 +56,11 @@ let string_of_dna (seq : dna) : string =
 
 
 (* if list = pre@suf, return Some suf. otherwise, return None *)
-let cut_prefix (slice : 'a list) (list : 'a list) : 'a list option =
-  failwith "A faire"
+let rec cut_prefix (slice : 'a list) (list : 'a list) : 'a list option = match (slice, list) with
+| ([],droite) -> Some droite
+|(x::gauche, y::droite) when x=y -> cut_prefix gauche droite
+|_-> None
+
 
 (*
   cut_prefix [1; 2; 3] [1; 2; 3; 4] = Some [4]
