@@ -108,4 +108,11 @@ type answer =
   Infinite | Accept | Reject
 
 let accept_partial e w =
-  failwith "À compléter"
+  let al = alphabet_expr expr in
+  let reconnu = enumerate (List.sort_uniq compare (al@word)) expr in
+  match reconnu with
+  |Some e ->
+    if List.exists (fun v -> v = word) e then 
+      Accept
+    else Reject
+  |None -> Infinite
