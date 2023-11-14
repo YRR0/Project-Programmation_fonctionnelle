@@ -55,10 +55,24 @@ let product l1 l2 =
   in
   concat_lists l1 l2
 
+let is_finite_b lang =
+    let visited = ref [] in
+    let rec is_finite_helper l =
+      if List.mem l !visited then
+        false  (* Boucle détectée, le langage est infini *)
+      else begin
+        visited := l :: !visited;
+        match l with
+        | [] -> true  (* Le mot vide est reconnu et est fini *)
+        | x :: xs -> is_finite_helper xs
+      end
+    in
+    List.for_all (fun word -> is_finite_helper word) lang
+  
 let enumerate alphabet e =
   let is_finite_lang = ref true in (* Indicateur pour vérifier si le langage est fini *)
-  let rec enumerate_helper expr =
-    match expr with
+  let rec enumerate_helper e =
+    match e with
     | Eps -> [[]]  (* Le mot vide est reconnu *)
     | Base c -> [[c]]  (* Un caractère unique est reconnu en tant que mot *)
     | Joker -> List.map (fun c -> [c]) alphabet  (* Le Joker reconnaît n'importe quel caractère *)
@@ -80,7 +94,7 @@ let enumerate alphabet e =
       is_finite_lang.contents <- false;  (* Une étoile reconnaît un langage potentiellement infini *)
       [[]]  (* Le mot vide est reconnu, mais on ne génère pas d'autres mots *)
   in
-  let result = enumerate_helper expr in
+  let result = enumerate_helper e in
   if !is_finite_lang then
     Some result
   else
@@ -101,18 +115,18 @@ let rec alphabet_expr e =
       alphabet_expr_helper e2 alphabet1
     | Star e -> alphabet_expr_helper e alphabet
   in
-  List.sort_uniq compare (alphabet_expr_helper expr [])
+  List.sort_uniq compare (alphabet_expr_helper e [])
 
 
 type answer =
   Infinite | Accept | Reject
 
 let accept_partial e w =
-  let al = alphabet_expr expr in
-  let reconnu = enumerate (List.sort_uniq compare (al@word)) expr in
+  let al = alphabet_expr e in
+  let reconnu = enumerate (List.sort_uniq compare (al@w)) e in
   match reconnu with
   |Some e ->
-    if List.exists (fun v -> v = word) e then 
+    if List.exists (fun v -> v = w) e then 
       Accept
     else Reject
   |None -> Infinite
