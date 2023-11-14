@@ -25,7 +25,14 @@ let rec is_empty e =
 
 
 let rec null e =
-  failwith "À compléter"
+  match e with
+  | Eps -> true  (* Le mot vide est reconnu par Eps *)
+  | Base _ -> false  (* Une base contient au moins un symbole, donc le mot vide n'est pas reconnu *)
+  | Joker -> false  (* Le Joker  *)
+  | Concat (e1, e2) -> null e1 && null e2  (* Si les deux sous-expressions reconnaissent le mot vide, la concaténation le fait aussi *)
+  | Alt (e1, e2) -> null e1 || null e2  (* L'alternative reconnaît le mot vide si au moins l'une des sous-expressions le fait *)
+  | Star _ -> true  (* Une étoile reconnaît le mot vide car elle peut être répétée zéro fois *)
+
 
 let rec is_finite e =
   failwith "À compléter"
