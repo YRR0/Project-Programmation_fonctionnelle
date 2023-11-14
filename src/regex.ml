@@ -56,7 +56,36 @@ let product l1 l2 =
   concat_lists l1 l2
 
 let enumerate alphabet e =
-  failwith "À compléter"
+  let is_finite_lang = ref true in (* Indicateur pour vérifier si le langage est fini *)
+  let rec enumerate_helper expr =
+    match expr with
+    | Eps -> [[]]  (* Le mot vide est reconnu *)
+    | Base c -> [[c]]  (* Un caractère unique est reconnu en tant que mot *)
+    | Joker -> List.map (fun c -> [c]) alphabet  (* Le Joker reconnaît n'importe quel caractère *)
+    | Concat (e1, e2) ->
+      let l1 = enumerate_helper e1 in
+      let l2 = enumerate_helper e2 in
+      let product_result = product l1 l2 in
+      if not (is_finite_lang.contents) then
+        is_finite_lang := is_finite_b product_result;
+      product_result
+    | Alt (e1, e2) ->
+      let l1 = enumerate_helper e1 in
+      let l2 = enumerate_helper e2 in
+      let union_result = List.append l1 l2 in
+      if not (is_finite_lang.contents) then
+        is_finite_lang := is_finite_b union_result;
+      union_result
+    | Star _ ->
+      is_finite_lang.contents <- false;  (* Une étoile reconnaît un langage potentiellement infini *)
+      [[]]  (* Le mot vide est reconnu, mais on ne génère pas d'autres mots *)
+  in
+  let result = enumerate_helper expr in
+  if !is_finite_lang then
+    Some result
+  else
+    None
+
 
 let rec alphabet_expr e =
   failwith "À compléter"
