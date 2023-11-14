@@ -50,7 +50,10 @@ let rec is_finite e =
   is_finite_helper e []
 
 let product l1 l2 =
-  failwith "À compléter"
+  let concat_lists l1 l2 =
+    List.concat_map (fun x -> List.map (fun y -> x @ y) l2) l1
+  in
+  concat_lists l1 l2
 
 let enumerate alphabet e =
   failwith "À compléter"
