@@ -88,7 +88,21 @@ let enumerate alphabet e =
 
 
 let rec alphabet_expr e =
-  failwith "À compléter"
+  let rec alphabet_expr_helper expr alphabet =
+    match expr with
+    | Eps -> alphabet  (* Pas de lettre dans le mot vide *)
+    | Base c -> if List.mem c alphabet then alphabet else c :: alphabet
+    | Joker -> alphabet  (* Le Joker ne contribue pas aux lettres *)
+    | Concat (e1, e2) ->
+      let alphabet1 = alphabet_expr_helper e1 alphabet in
+      alphabet_expr_helper e2 alphabet1
+    | Alt (e1, e2) ->
+      let alphabet1 = alphabet_expr_helper e1 alphabet in
+      alphabet_expr_helper e2 alphabet1
+    | Star e -> alphabet_expr_helper e alphabet
+  in
+  List.sort_uniq compare (alphabet_expr_helper expr [])
+
 
 type answer =
   Infinite | Accept | Reject
