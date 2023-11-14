@@ -14,7 +14,15 @@ let rec expr_repeat n e =
 
 
 let rec is_empty e =
-  failwith "À compléter"
+  match e with
+  | Eps -> true  (* Le mot vide est reconnu par Eps *)
+  | Base _ -> false  (* Une base contient au moins un symbole *)
+  | Joker -> false  (* Le Joker reconnaît le mot vide car il peut représenter n'importe quel symbole *)
+  | Concat (e1, e2) -> is_empty e1 && is_empty e2  (* Si les deux sous-expressions reconnaissent le mot vide, la concaténation le fait aussi *)
+  | Alt (e1, e2) ->  is_empty e1 && is_empty e2  (* il faut voir que les 2 mots ne sont pas vide *)
+  | Star t -> is_empty t  
+(* Une étoile reconnaît le mot vide car elle peut être répétée zéro fois *)
+
 
 let rec null e =
   failwith "À compléter"
