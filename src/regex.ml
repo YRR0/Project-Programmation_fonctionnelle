@@ -5,7 +5,13 @@ let rec repeat n l =
   else l @ repeat (n-1) l
 
 let rec expr_repeat n e =
-  failwith "À compléter"
+  if n <= 0 then
+    Eps  (* Expression vide si n est inférieur ou égal à 0 *)
+  else if n = 1 then
+    e  (* L'expression e elle-même si n est égal à 1 *)
+  else
+    Concat (e, expr_repeat (n - 1) e)  (* Concaténation de e avec n-1 occurrences de e *)
+
 
 let rec is_empty e =
   failwith "À compléter"
