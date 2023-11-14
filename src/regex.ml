@@ -35,7 +35,19 @@ let rec null e =
 
 
 let rec is_finite e =
-  failwith "À compléter"
+  let rec is_finite_helper e visited =
+    if List.mem e visited then
+      false  (* Boucle détectée, le langage est infini *)
+    else
+      match e with
+      | Eps -> true  (* Le mot vide est reconnu et est fini *)
+      | Base _ -> true  (* Une base contenant un caractère unique est finie *)
+      | Joker -> true  (* Le Joker reconnaît le mot vide et est fini *)
+      | Concat (e1, e2) -> is_finite_helper e1 (e :: visited) && is_finite_helper e2 (e :: visited)
+      | Alt (e1, e2) -> is_finite_helper e1 (e :: visited) && is_finite_helper e2 (e :: visited)
+      | Star m -> is_empty m  (* Une étoile reconnaît un langage potentiellement infini mais peut être vide  *)
+  in
+  is_finite_helper e []
 
 let product l1 l2 =
   failwith "À compléter"
