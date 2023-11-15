@@ -55,6 +55,12 @@ let product l1 l2 =
   in
   concat_lists l1 l2
 
+
+(*
+   Cette fonction vérifie si un langage est fini en utilisant une
+   approche de détection de boucle. Elle prend en paramètre une liste
+   de mots (lang) et vérifie si chaque mot est fini.
+*)
 let is_finite_b lang =
     let visited = ref [] in
     let rec is_finite_helper l =
@@ -70,7 +76,7 @@ let is_finite_b lang =
     List.for_all (fun word -> is_finite_helper word) lang
   
 let enumerate alphabet e =
-  let is_finite_lang = ref true in (* Indicateur pour vérifier si le langage est fini *)
+  let is_finite_lang = ref true in (* Indicateur pour vérifier si le langage est fini , cette donnée peut varier *)
   let rec enumerate_helper e =
     match e with
     | Eps -> [[]]  (* Le mot vide est reconnu *)
@@ -79,8 +85,8 @@ let enumerate alphabet e =
     | Concat (e1, e2) ->
       let l1 = enumerate_helper e1 in
       let l2 = enumerate_helper e2 in
-      let product_result = product l1 l2 in
-      if not (is_finite_lang.contents) then
+      let product_result = product l1 l2 in 
+      if not (is_finite_lang.contents) then (* changement de contenu potentiel*)
         is_finite_lang := is_finite_b product_result;
       product_result
     | Alt (e1, e2) ->
