@@ -20,15 +20,15 @@ let string_of_base (b : base) : string =
 
 (* explode a string into a char list *)
 let explode (str : string) : char list =
-  let rec aux index acc =
-    if index < 0 then acc
-    else aux (index - 1) (str.[index] :: acc)
-  in
-  aux (String.length str - 1) []
+  let taille=String.length str in
+  let rec aux index acc=
+    if index>=taille then acc 
+    else aux (index+1) (str.[index] :: acc) in
+    let x=aux 0 [] in List.rev x
 
 
 (* conversions *)
-let base_of_char (c : char) : base = match c with
+let base_of_char (cgit : char) : base = match cgit with
 | 'A' ->  A
 | 'C' ->  C
 | 'G' ->  G
@@ -72,26 +72,40 @@ let rec cut_prefix (slice : 'a list) (list : 'a list) : 'a list option = match (
 (* return the prefix and the suffix of the first occurrence of a slice,
    or None if this occurrence does not exist.
 *)
-let first_occ (slice : 'a list) (list : 'a list)
-    : ('a list * 'a list) option =
-  failwith "À compléter"
+let first_occ (slice : 'a list) (list : 'a list) : ('a list * 'a list) option =
+  match cut_prefix slice list with
+  |Some suffix->Some([],suffix)
+  |None->let rec aux avant apres =
+            match apres with
+            |[]->None
+            |hd::ls-> match cut_prefix slice apres with
+                      |Some suffix-> Some (avant ,suffix)
+                      |None-> aux (avant @ [hd] ) ls 
+            in
+            aux [] list
 (*
   first_occ [1; 2] [1; 1; 1; 2; 3; 4; 1; 2] = Some ([1; 1], [3; 4; 1; 2])
   first_occ [1; 1] [1; 1; 1; 2; 3; 4; 1; 2] = Some ([], [1; 2; 3; 4; 1; 2])
   first_occ [1; 3] [1; 1; 1; 2; 3; 4; 1; 2] = None
  *)
 
-
 let rec slices_between
           (start : 'a list) (stop : 'a list) (list : 'a list) : 'a list list =
-  failwith "A faire"
+          let rec aux start stop list res=
+          match first_occ start list with
+          |None->res
+          |Some (prefixe,suffixe)-> match first_occ stop suffixe with
+                         |None->res
+                         |Some (suprefixe,susuffixe)-> aux start stop susuffixe (suprefixe::res) in
+                         List.rev(aux start stop list [])
 
 (*
   slices_between [1; 1] [1; 2] [1; 1; 1; 1; 2; 1; 3; 1; 2] = [[1]; []; [2; 1; 3]]
  *)
 
 let cut_genes (dna : dna) : (dna list) =
-  failwith "A faire"
+  slices_between [A;T;G] [T;A;A] dna
+
 
 (*---------------------------------------------------------------------------*)
 (*                          CONSENSUS SEQUENCES                              *)
@@ -154,6 +168,7 @@ type 'a consensus = Full of 'a | Partial of 'a * int | No_consensus
    position  in the sequences. the lists must be of same length. if all lists
    are empty, return the empty sequence.
  *)
+
  let transpose matrix =
   match matrix with
   | [] -> []
