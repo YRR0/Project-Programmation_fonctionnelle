@@ -103,31 +103,78 @@ type 'a consensus = Full of 'a | Partial of 'a * int | No_consensus
 (* return (Full a) if all elements of the list are equal to a,
    (Partial (a, n)) if a is the only element of the list with the
    greatest number of occurrences and this number is equal to n,
-   No_consensus otherwise. *)
-let consensus (list : 'a list) : 'a consensus =
-  failwith "À compléter"
+   No_consensus otherwise. the list must be non-empty *)
 
+    let rec trouver_occurrence element liste_tuples =
+      match liste_tuples with
+      | [] -> []  (* L'élément n'a pas été vu, donc le nombre d'occurrences est 0 *)
+      | (e, occurrences) :: tl ->
+        if e = element then (* on croise l'élément dans notre liste*)
+          (e,occurrences+1) :: tl
+        else (* on ne croise pas l'élément alross on continue notre recherche *)
+          [(e,occurrences)] @ trouver_occurrence element tl    
+    ;;
+  let rec creation li res = match li with 
+    |[] -> res
+    | x :: tl -> 
+      (* si on n'a pas trouvé l'élément *)
+      if ((trouver_occurrence x res) = [] || (trouver_occurrence x res = res)) then let r = [(x,1)] in
+      (*let() = print_string "1\n" in *)
+       creation tl (res@r)
+  else 
+    (*let() = print_string "2\n" in 
+    *)let f = trouver_occurrence x res in creation tl f
+    
+    let consensus l = 
+      if l = [] then No_consensus else
+      let v = List.hd l in 
+      let total = creation l [] in 
+      let rec verif t valeur nb = match t with
+      |[] -> if nb=0 then No_consensus else Partial(valeur,nb)
+      | (x,m) :: tl -> 
+                  let val_actuel = valeur in let max_actuel = nb in 
+                  if (List.length total = 1) then Full (x) 
+                  else  
+                      if nb = 0 then verif tl x m 
+                      else 
+                        if(m > max_actuel) then verif tl x m
+                        else if m=max_actuel then No_consensus
+                        else verif tl val_actuel max_actuel
+      in
+      verif total v 0
+  
 (*
    consensus [1; 1; 1; 1] = Full 1
    consensus [1; 1; 1; 2] = Partial (1, 3)
    consensus [1; 1; 2; 2] = No_consensus
  *)
 
-(* return the consensus sequence of a list of sequences : for each position
+(* return the consensus sequence of a list of sequence : for each position
    in the elements of ll, compute the consensus  of the set of values at this
    position  in the sequences. the lists must be of same length. if all lists
    are empty, return the empty sequence.
  *)
+ let transpose matrix =
+  match matrix with
+  | [] -> []
+  | [] :: _ -> []
+  | _ ->
+    let rec transpose_aux acc = function
+      | [] :: _ -> List.rev acc
+      | m -> transpose_aux (List.map List.hd m :: acc) (List.map List.tl m)
+    in
+    transpose_aux [] matrix
+;;
 
 let consensus_sequence (ll : 'a list list) : 'a consensus list =
-  failwith "À compléter"
+ let t = transpose ll in
+ List.map consensus t
 
+  
 (*
  consensus_sequence [[1; 1; 1; 1];
                      [1; 1; 1; 2];
                      [1; 1; 2; 2];
                      [1; 2; 2; 2]]
  = [Full 1; Partial (1, 3); No_consensus; Partial (2, 3)]
-
- consensus_sequence [[]; []; []] = []
- *)
+*)
