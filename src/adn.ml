@@ -84,6 +84,7 @@ let first_occ (slice : 'a list) (list : 'a list) : ('a list * 'a list) option =
             in
             aux [] list
 
+
       (*
       let first_occ (slice : 'a list) (list : 'a list) : ('a list * 'a list) option =
         let rec aux avant apres =
@@ -105,10 +106,18 @@ let first_occ (slice : 'a list) (list : 'a list) : ('a list * 'a list) option =
   first_occ [1; 3] [1; 1; 1; 2; 3; 4; 1; 2] = None
  *)
 
-
 let rec slices_between
           (start : 'a list) (stop : 'a list) (list : 'a list) : 'a list list =
-  failwith "A faire"
+          let rec aux start stop list res=
+          match first_occ start list with
+          |None->res
+          |Some (prefixe,suffixe)-> match first_occ stop suffixe with
+                         |None->res
+                         |Some (suprefixe,susuffixe)-> aux start stop susuffixe (suprefixe::res) in
+                         List.rev(aux start stop list [])
+
+        
+  
 
 (*
   slices_between [1; 1] [1; 2] [1; 1; 1; 1; 2; 1; 3; 1; 2] = [[1]; []; [2; 1; 3]]
