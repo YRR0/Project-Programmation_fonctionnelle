@@ -133,114 +133,57 @@ let cut_genes (dna : dna) : (dna list) =
 
 type 'a consensus = Full of 'a | Partial of 'a * int | No_consensus
 
-(* return (Full a) if all elements of the list are equal to a,
-   (Partial (a, n)) if a is the only element of the list with the
-   greatest number of occurrences and this number is equal to n,
-   No_consensus otherwise. *)
-
-   (*
-let res a c g t types =
-    if (a!=0&&c=0&&g=0&&t=0) then Full (List.nth types 0)
-    else if (a=0&&c!=0&&g=0&&t=0) then Full (List.nth types 1)
-    else if (a=0&&c=0&&g!=0&&t=0) then Full (List.nth types 2)
-    else if (a=0&&c=0&&g=0&&t!=0) then Full (List.nth types 3)
-    else  
-      let x= max a c in
-      let y= max g x in
-      let maximum= max y t in
-      if (a=maximum && c!=maximum && g!=maximum && t!=maximum) then Partial (List.nth types 0, maximum)
-      else if (a!=maximum && c=maximum && g!=maximum && t!=maximum) then Partial (List.nth types 1, maximum)
-      else if (a!=maximum && c!=maximum && g=maximum && t!=maximum) then Partial (List.nth types 2, maximum)
-      else if (a!=maximum && c!=maximum && g!=maximum && t=maximum) then Partial (List.nth types 3, maximum)
-      else No_consensus
-*)
-let consensus (list : 'a list) : 'a consensus =
-  failwith "A faire"
-  (*
-let consensus1 (list : 'a list) : 'a consensus =
-  let rec aux list a c g t =
-    match list with
-    |[]-> res a c g t 
-    |hd :: ls-> match hd with 
-                |A-> aux ls (a+1) c g t
-                |C-> aux ls a (c+1) g t
-                |G-> aux ls a c (g+1) t
-                |T-> aux ls a c g (t+1)
-                |_->No_consensus 
-  in aux list 0 0 0 0*)
-
-  (*
-
-  let rec maj a c g t ctA ctC ctG ctT elem= 
-   match elem with
-   |a-> (ctA+1, ctC, ctG, ctT)
-   |c-> (ctA, ctC+1, ctG, ctT)
-   |g-> (ctA, ctC, ctG+1, ctT)
-   |t-> (ctA, ctC, ctG, ctT+1)
-   |_-> (ctA, ctC, ctG, ctT)
+(*type 'a compteur = { element : 'a; nb : int }*)
 
 
-  let consensus2 (list : 'a list) : 'a consensus =
-    let rec aux list a c g t ctA ctC ctG ctT=
-      match list with
-      |[]-> res a c g t 
-      |hd ::ls-> aux ls a c g t (maj ctA ctC ctG ctT elem) in
-      aux list a c g t 0 0 0 0
-      *)
+let maximum4 a c g t nbA nbC nbG nbT=
+  if nbC=0 && nbG=0 && nbT=0 then Full a
+  else if nbA>nbC && nbA>nbG && nbA>nbT then Partial (a,nbA)
+  else if nbC>nbA && nbC>nbG && nbC>nbT then Partial (c,nbC)
+  else if nbG>nbA && nbG>nbC && nbG>nbT then Partial (g,nbG)
+  else if nbT>nbA && nbT>nbC && nbT>nbG then Partial (t,nbT)
+  else No_consensus
 
 
-    
+let rec partial4 a c g t nbA nbC nbG nbT list=
+  match list with
+  |[]->  maximum4 a c g t nbA nbC nbG nbT 
+  |hd::ls-> if hd=a then partial4 a c g t (nbA+1) nbC nbG nbT ls
+            else if hd=c then partial4 a c g t nbA (nbC+1) nbG nbT ls 
+            else if hd=g then partial4 a c g t nbA nbC (nbG+1) nbT ls 
+            else if hd=t then partial4 a c g t nbA nbC nbG (nbT+1) ls
+            else No_consensus
 
-    (*let rec taille n list acc=
-      let x=List.length list in
-      let y=n-x in
-      for i = 0 to x-1 do
-        list@0 
-      done; 
-      list*)
-    (*
-    let rec sousListe list acc=
-      match list with
-      |[]->acc
-      |hd :: ls-> if List.mem hd acc then sousListe ls acc else sousListe ls (hd :: acc)
+let rec partial3 a c g t nbA nbC nbG nbT list=
+  match list with
+  |[]->  maximum4 a c g t nbA nbC nbG nbT 
+  |hd::ls-> if hd=a then partial3 a c g t (nbA+1) nbC nbG nbT ls
+            else if hd=c then partial3 a c g t nbA (nbC+1) nbG nbT ls 
+            else if hd=g then partial3 a c g t nbA nbC (nbG+1) nbT ls 
+            else partial4 a c g hd nbA nbC nbG (nbT+1) ls
+
+let rec partial2 a c g t nbA nbC nbG nbT list=
+  match list with
+  |[]-> maximum4 a c g t nbA nbC nbG nbT 
+  |hd::ls-> if hd=a then partial2 a c g t (nbA+1) nbC nbG nbT ls
+            else if hd=c then partial2 a c g t nbA (nbC+1) nbG nbT ls 
+            else partial3 a c hd t nbA nbC (nbG+1) nbT ls
+
+let rec partial1 a c g t nbA nbC nbG nbT list=
+  match list with
+  |[]-> maximum4 a c g t nbA nbC nbG nbT 
+  |hd::ls-> if hd=a then partial1 a c g t (nbA+1) nbC nbG nbT ls
+            else partial2 a hd g t nbA (nbC+1) nbG nbT ls  
+     
+let consensus (list : 'a list) : 'a consensus =          
+  match list with
+  |[]->No_consensus
+  |hd:: ls-> partial1 hd hd hd hd  1 0 0 0 ls
 
 
-    let consensus (list : 'a list) : 'a consensus =
-      let ssListe= sousListe list [] in
-      let taille=List.length ssListe in
-      if taille=0 then begin res 0 0 0 0 end in
-      if taille>0 then let first_elem =List.nth ssListe 0 
-      if taille>1 then let var2=List.nth ssListe 1 in
-      if taille>2 then let var3=List.nth ssListe 2 in
-      if taille>3 then let var4=List.nth ssListe 3 in
-      let rec auxConsensus list  a c g t =
-        match list with
-        |[]->res  a c g t
-        |hd :: ls-> if hd= first_elem then auxConsensus ls (a+1) c g t 
-               else if taille <2 then Full first_elem else if hd=var2  then auxConsensus ls a (c+1) g t
-               else if taille <3 then auxConsensus ls ssListe a c g t else if hd=var3 then auxConsensus ls a c (g+1) t
-               else if taille <4 then auxConsensus ls ssListe a c g t else if hd=var4 then auxConsensus ls a c g (t+1)
-               else auxConsensus ls  a c g t in
-               auxConsensus list 0 0 0 0*)
-                
-                
-  
-
-    
-
-(*
-   consensus [1; 1; 1; 1] = Full 1
-   consensus [1; 1; 1; 2] = Partial (1, 3)
-   consensus [1; 1; 2; 2] = No_consensus
- *)
-
-(* return the consensus sequence of a list of sequences : for each position
-   in the elements of ll, compute the consensus  of the set of values at this
-   position  in the sequences. the lists must be of same length. if all lists
-   are empty, return the empty sequence.
- *)
 let consensus_sequence (ll : 'a list list) : 'a consensus list =
-   failwith "A faire"
+  failwith "A faire"
+
 (*let consensus_sequence (ll : 'a list list) : 'a consensus list =
   (*let rec aux ll acc=
     match ll with 
