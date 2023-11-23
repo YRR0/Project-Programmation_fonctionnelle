@@ -54,24 +54,12 @@ let string_of_dna (seq : dna) : string =
    de $l$ de la forme $\langle x_i, \dots x_{j}$, o\`u $1 \leq i \leq j\leq n$.
  *)
 
-
-(* if list = pre@suf, return Some suf. otherwise, return None *)
+ 
 let rec cut_prefix (slice : 'a list) (list : 'a list) : 'a list option = match (slice, list) with
 | ([],droite) -> Some droite
 |(x::gauche, y::droite) when x=y -> cut_prefix gauche droite
 |_-> None
 
-
-(*
-  cut_prefix [1; 2; 3] [1; 2; 3; 4] = Some [4]
-  cut_prefix [1; 2; 3; 4] [1; 2; 3; 4] = Some []
-  cut_prefix [1; 2; 0] [1; 2; 3; 4] = None
- *)
-
-
-(* return the prefix and the suffix of the first occurrence of a slice,
-   or None if this occurrence does not exist.
-*)
 let first_occ (slice : 'a list) (list : 'a list) : ('a list * 'a list) option =
   match cut_prefix slice list with
   |Some suffix->Some([],suffix)
@@ -84,28 +72,6 @@ let first_occ (slice : 'a list) (list : 'a list) : ('a list * 'a list) option =
             in
             aux [] list
 
-
-      (*
-      let first_occ (slice : 'a list) (list : 'a list) : ('a list * 'a list) option =
-        let rec aux avant apres =
-          match apres with
-          | [] -> None
-          | hd::tl -> 
-            match cut_prefix slice tl with
-            | Some suffix -> Some (avant, suffix)
-            | None -> aux (avant @ [hd]) tl
-        in
-        aux [] list
-        *)
-
-
-
-(*
-  first_occ [1; 2] [1; 1; 1; 2; 3; 4; 1; 2] = Some ([1; 1], [3; 4; 1; 2])
-  first_occ [1; 1] [1; 1; 1; 2; 3; 4; 1; 2] = Some ([], [1; 2; 3; 4; 1; 2])
-  first_occ [1; 3] [1; 1; 1; 2; 3; 4; 1; 2] = None
- *)
-
 let rec slices_between
           (start : 'a list) (stop : 'a list) (list : 'a list) : 'a list list =
           let rec aux start stop list res=
@@ -116,12 +82,6 @@ let rec slices_between
                          |Some (suprefixe,susuffixe)-> aux start stop susuffixe (suprefixe::res) in
                          List.rev(aux start stop list [])
 
-        
-  
-
-(*
-  slices_between [1; 1] [1; 2] [1; 1; 1; 1; 2; 1; 3; 1; 2] = [[1]; []; [2; 1; 3]]
- *)
 
 let cut_genes (dna : dna) : (dna list) =
   slices_between [A; T; G] [T; A; A] dna
@@ -133,9 +93,7 @@ let cut_genes (dna : dna) : (dna list) =
 
 type 'a consensus = Full of 'a | Partial of 'a * int | No_consensus
 
-(*type 'a compteur = { element : 'a; nb : int }*)
-
-
+(*
 let maximum4 a c g t nbA nbC nbG nbT=
   if nbC=0 && nbG=0 && nbT=0 then Full a
   else if nbA>nbC && nbA>nbG && nbA>nbT then Partial (a,nbA)
@@ -174,31 +132,40 @@ let rec partial1 a c g t nbA nbC nbG nbT list=
   |[]-> maximum4 a c g t nbA nbC nbG nbT 
   |hd::ls-> if hd=a then partial1 a c g t (nbA+1) nbC nbG nbT ls
             else partial2 a hd g t nbA (nbC+1) nbG nbT ls  
-     
+
+      
+            
+
 let consensus (list : 'a list) : 'a consensus =          
   match list with
   |[]->No_consensus
   |hd:: ls-> partial1 hd hd hd hd  1 0 0 0 ls
 
+  *)
+
+let rec maximum compteur i=
+  match List.nth compteur i with
+  | exception Failure _ -> "Erreur hors limite"
+  | (a,b)->  a
+
+
+let rec partial list compteur=
+  match list with
+  |[]-> maximum compteur 0 
+  |hd::ls -> if List.mem hd compteur then let compteurNouv= List.map (fun(a,b)-> if a=hd then (a,b+1) else (a,b)) compteur 
+            in partial ls compteurNouv
+            else let compteurNouv= (hd,0)::compteur 
+            in partial ls compteurNouv
+            
+            
+            
+let consensus (list : 'a list) : 'a consensus =          
+    match list with
+      |[]->No_consensus
+      |hd:: ls-> partial1 hd hd hd hd  1 0 0 0 ls
 
 let consensus_sequence (ll : 'a list list) : 'a consensus list =
   failwith "A faire"
 
-(*let consensus_sequence (ll : 'a list list) : 'a consensus list =
-  (*let rec aux ll acc=
-    match ll with 
-    |[]->acc
-    |hd :: ls-> let val=consensus *)
-    failwith "A faire"*)
 
 
-
-(*
- consensus_sequence [[1; 1; 1; 1];
-                     [1; 1; 1; 2];
-                     [1; 1; 2; 2];
-                     [1; 2; 2; 2]]
- = [Full 1; Partial (1, 3); No_consensus; Partial (2, 3)]
-
- consensus_sequence [[]; []; []] = []
- *)
