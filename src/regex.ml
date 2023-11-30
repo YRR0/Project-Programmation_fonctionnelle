@@ -49,44 +49,47 @@ let rec is_finite e =
   in
   is_finite_helper e []
 
+  (* Fonction product qui calcule le produit cartésien de deux listes de listes *)
 let product l1 l2 =
+  (* Fonction locale pour concaténer les éléments de deux listes *)
   let concat_lists l1 l2 =
-    List.concat_map (fun x -> List.map (fun y -> x @ y) l2) l1
+    (* Utilisation de List.concat_map pour appliquer une fonction à chaque élément de l1 *)
+    List.concat_map (fun x ->
+      (* Utilisation de List.map pour appliquer une fonction à chaque élément de l2 *)
+      List.map (fun y -> x @ y) l2 ) l1
   in
+  (* Appel de la fonction locale pour obtenir le produit cartésien des deux listes *)
   concat_lists l1 l2
 
-
-(*
-   Cette fonction vérifie si un langage est fini en utilisant une
-   approche de détection de boucle. Elle prend en paramètre une liste
-   de mots (lang) et vérifie si chaque mot est fini.
-*)
+  (* fonction auxiliaire utile pour faire des vérifications *)
 let is_finite_b lang =
-    let visited = ref [] in
-    let rec is_finite_helper l =
-      if List.mem l !visited then
-        false  (* Boucle détectée, le langage est infini *)
-      else begin
-        visited := l :: !visited;
-        match l with
-        | [] -> true  (* Le mot vide est reconnu et est fini *)
-        | x :: xs -> is_finite_helper xs
-      end
-    in
-    List.for_all (fun word -> is_finite_helper word) lang
-  
-let enumerate alphabet e =
-  let is_finite_lang = ref true in (* Indicateur pour vérifier si le langage est fini , cette donnée peut varier *)
-  let rec enumerate_helper e =
-    match e with
+  let visited = ref [] in
+  let rec is_finite_helper l =
+    if List.mem l !visited then
+      false  (* Boucle détectée, le langage est infini *)
+    else begin
+      visited := l :: !visited;
+      match l with
+      | [] -> true  (* Le mot vide est reconnu et est fini *)
+      | x :: xs -> is_finite_helper xs
+    end
+  in
+  List.for_all (fun word -> is_finite_helper word) lang
+
+
+
+let enumerate alphabet expr =
+  let is_finite_lang = ref true in (* Indicateur pour vérifier si le langage est fini *)
+  let rec enumerate_helper expr =
+    match expr with
     | Eps -> [[]]  (* Le mot vide est reconnu *)
     | Base c -> [[c]]  (* Un caractère unique est reconnu en tant que mot *)
     | Joker -> List.map (fun c -> [c]) alphabet  (* Le Joker reconnaît n'importe quel caractère *)
-    | Concat (e1, e2) ->
+    | Concat (e1, e2) -> (* Pour la concaténation on va faire *)
       let l1 = enumerate_helper e1 in
       let l2 = enumerate_helper e2 in
-      let product_result = product l1 l2 in 
-      if not (is_finite_lang.contents) then (* changement de contenu potentiel*)
+      let product_result = product l1 l2 in (* produit de la concaténation*)
+      if not (is_finite_lang.contents) then  
         is_finite_lang := is_finite_b product_result;
       product_result
     | Alt (e1, e2) ->
@@ -100,39 +103,46 @@ let enumerate alphabet e =
       is_finite_lang.contents <- false;  (* Une étoile reconnaît un langage potentiellement infini *)
       [[]]  (* Le mot vide est reconnu, mais on ne génère pas d'autres mots *)
   in
-  let result = enumerate_helper e in
+  let result = enumerate_helper expr in
   if !is_finite_lang then
     Some result
   else
     None
 
 
-let rec alphabet_expr e =
+(* Fonction récursive pour calculer l'alphabet d'une expression régulière *)
+let rec alphabet_expr expr =
+  (* Fonction auxiliaire récursive prenant l'expression et l'alphabet en cours *)
   let rec alphabet_expr_helper expr alphabet =
     match expr with
     | Eps -> alphabet  (* Pas de lettre dans le mot vide *)
-    | Base c -> if List.mem c alphabet then alphabet else c :: alphabet
+    | Base c ->
+      if List.mem c alphabet then alphabet else c :: alphabet
     | Joker -> alphabet  (* Le Joker ne contribue pas aux lettres *)
     | Concat (e1, e2) ->
+      (* Calcul de l'alphabet pour les deux parties de la concaténation *)
       let alphabet1 = alphabet_expr_helper e1 alphabet in
       alphabet_expr_helper e2 alphabet1
     | Alt (e1, e2) ->
+      (* Calcul de l'alphabet pour les deux alternatives de l'alternative *)
       let alphabet1 = alphabet_expr_helper e1 alphabet in
       alphabet_expr_helper e2 alphabet1
-    | Star e -> alphabet_expr_helper e alphabet
+    | Star e ->
+      (* Calcul de l'alphabet pour l'expression répétée *)
+      alphabet_expr_helper e alphabet
   in
-  List.sort_uniq compare (alphabet_expr_helper e [])
+  List.sort_uniq compare (alphabet_expr_helper expr [])
 
 
 type answer =
   Infinite | Accept | Reject
 
-let accept_partial e w =
-  let al = alphabet_expr e in
-  let reconnu = enumerate (List.sort_uniq compare (al@w)) e in
+let accept_partial expr word =
+  let al = alphabet_expr expr in
+  let reconnu = enumerate (List.sort_uniq compare (al@word)) expr in
   match reconnu with
   |Some e ->
-    if List.exists (fun v -> v = w) e then 
+    if List.exists (fun v -> v = word) e then 
       Accept
     else Reject
   |None -> Infinite
