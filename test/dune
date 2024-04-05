@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 (tests
   (names test)
+=======
+(test
+  (name test)
+>>>>>>> 4d22825 (Projet S5 programmation fonctionnel)
   (libraries fmt alcotest pf5)
   (flags (:standard -open Pf5))
 )
